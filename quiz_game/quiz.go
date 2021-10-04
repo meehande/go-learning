@@ -6,6 +6,9 @@ import ("encoding/csv"
 	"bufio"
 	"reflect"
 	"strings"
+	"time"
+	"strconv"
+
 )
 
 func read_quiz(filepath string)[][]string{
@@ -62,8 +65,29 @@ func askQuestions(questions [][]string){
 
 func main(){
 	filePath := flag.String("file", "problems.csv", "file containing quiz questions. defaults to problems.csv")
+	timeLimit := flag.String("time", "", "optional time limit, seconds")
 	flag.Parse()
 	fmt.Println("starting quiz")
 	questions := read_quiz(*filePath)
-	askQuestions(questions)
+
+	if *timeLimit != "" {
+        seconds, err := strconv.Atoi(*timeLimit)
+        if err != nil {
+            // handle error
+            fmt.Println(err)
+            os.Exit(2)
+        }
+        durationSeconds := time.Duration(seconds)
+        fmt.Println("setting timer ", seconds)
+
+        quitter := make(chan bool)
+	    timedQuestions(quitter, questions)
+	    time.Sleep(durationSeconds * time.Second)
+	    quitter <- true
+	    fmt.Println("exiting")
+	}
+
+	//askQuestions(questions)
+
 }
+
