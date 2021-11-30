@@ -6,20 +6,28 @@ import ("encoding/csv"
 	"bufio"
 	"reflect"
 	"strings"
-	"time"
-	"strconv"
+	//"time"
+	//"strconv"
 
 )
 
-func read_quiz(filepath string)[][]string{
-	/*
-	dat, e := os.ReadFile(filepath)
-	if e != nil {
-		panic(e)
-	}
+type problem struct {
+    q string
+    a string
+}
 
-	fmt.Print(string(dat))
-	*/
+func parseProblems(lines [][]string) []problem{
+    problems := make([]problem, len(lines))
+    for i, qa := range lines{
+        problems[i] = problem{
+            q: qa[0],
+            a: qa[1],
+        }
+    }
+    return problems
+}
+
+func read_quiz(filepath string)[]problem{
 	csvFile, e := os.Open(filepath)
 	if e != nil {
 		fmt.Print(e)
@@ -30,8 +38,7 @@ func read_quiz(filepath string)[][]string{
 	if e != nil {
 		fmt.Print(e)
 	}
-	//fmt.Print(records)
-	return records
+	return parseProblems(records)
 }
 
 func readInput() string{
@@ -40,22 +47,20 @@ func readInput() string{
 	return strings.TrimRight(text, "\n")
 }
 
-func askQuestions(questions [][]string){
+func askQuestions(questions []problem){
 	correct := 0
 
-	for _, qa := range questions {
-		q := qa[0]
-		//a := qa[1]
-		fmt.Println(q)
+	for _, p := range questions {
+		fmt.Println(p.q)
 		inputAns := readInput()
 		fmt.Println(inputAns)
 		
-		if inputAns == qa[1] {
+		if inputAns == p.a {
 			fmt.Println("correct")
 			correct += 1
 		} else {
-			fmt.Println("incorrect, expected ", qa[1])
-			fmt.Println(reflect.TypeOf(qa[1]))
+			fmt.Println("incorrect, expected ", p.a)
+			fmt.Println(reflect.TypeOf(p.a))
 			fmt.Println(reflect.TypeOf(inputAns))
 		}
 	}
@@ -64,30 +69,30 @@ func askQuestions(questions [][]string){
 }
 
 func main(){
-	filePath := flag.String("file", "problems.csv", "file containing quiz questions. defaults to problems.csv")
-	timeLimit := flag.String("time", "", "optional time limit, seconds")
+	filePath := flag.String("file", "problems.csv", "file containing quiz questions in csv format")
+	//timeLimit := flag.String("time", "", "optional time limit, seconds")
 	flag.Parse()
 	fmt.Println("starting quiz")
-	questions := read_quiz(*filePath)
+	problems := read_quiz(*filePath)
 
-	if *timeLimit != "" {
-        seconds, err := strconv.Atoi(*timeLimit)
-        if err != nil {
-            // handle error
-            fmt.Println(err)
-            os.Exit(2)
-        }
-        durationSeconds := time.Duration(seconds)
-        fmt.Println("setting timer ", seconds)
-
-        quitter := make(chan bool)
-	    timedQuestions(quitter, questions)
-	    time.Sleep(durationSeconds * time.Second)
-	    quitter <- true
-	    fmt.Println("exiting")
-	}
-
-	//askQuestions(questions)
+// 	if *timeLimit != "" {
+//         seconds, err := strconv.Atoi(*timeLimit)
+//         if err != nil {
+//             // handle error
+//             fmt.Println(err)
+//             os.Exit(2)
+//         }
+//         durationSeconds := time.Duration(seconds)
+//         fmt.Println("setting timer ", seconds)
+//
+//         quitter := make(chan bool)
+// 	    timedQuestions(quitter, questions)
+// 	    time.Sleep(durationSeconds * time.Second)
+// 	    quitter <- true
+// 	    fmt.Println("exiting")
+// 	}
+    //fmt.Println(problems)
+	askQuestions(problems)
 
 }
 
